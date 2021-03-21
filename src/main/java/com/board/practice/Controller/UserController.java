@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.Optional;
 
 import static com.board.practice.Util.StatusCode.*;
 
@@ -31,22 +34,23 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    // 회원 가입
     @PostMapping("/join")
     public ResponseEntity<Message> join(@RequestBody User user) {
 
         // Validation Check
-        ValidationCheck userCheck= new ValidationCheck();
+        ValidationCheck userCheck = new ValidationCheck();
         // return Message 객체
-        Message message =new Message();
+        Message message = new Message();
         // 상태코드 객체
-        HashMap<String,Enum> statusCode = new HashMap<String, Enum>();
+        HashMap<String, Enum> statusCode = new HashMap<String, Enum>();
         try {
             logger.info(user.toString());
             //Validation Check
             statusCode = userCheck.userCheck(user);
 
             // Insert
-            if(statusCode.get("status")!=null && statusCode.get("status") == SUCCESS) {
+            if (statusCode.get("status") != null && statusCode.get("status") == SUCCESS) {
                 userService.saveUser(user);
                 message.setStatus(SUCCESS);
                 return new ResponseEntity<>(message, HttpStatus.OK);
@@ -61,29 +65,58 @@ public class UserController {
         }
     }
 
+    // 계정 체크
     @PostMapping("/idCheck")
-    public ResponseEntity<Message> emailCheck(@RequestBody User user) {
+    public ResponseEntity<Message> idCheck(@RequestBody User user) {
 
         // Validation Check
-        ValidationCheck userCheck= new ValidationCheck();
+        ValidationCheck userCheck = new ValidationCheck();
         // return Message 객체
-        Message message =new Message();
+        Message message = new Message();
         // 상태코드 객체
-        HashMap<String,Enum> statusCode = new HashMap<String, Enum>();
+        HashMap<String, Enum> statusCode = new HashMap<String, Enum>();
         try {
-            int check = userService.idOverlapCheck(user.getEmail());
-            if(check>0) {
+            int check = userService.idOverlapCheck(user.getId());
+            if (check > 0) {
                 message.setStatus(ALREADY_REGISTERED);
                 return new ResponseEntity<Message>(message, HttpStatus.OK);
-            } else{
+            } else {
                 message.setStatus(SUCCESS);
                 return new ResponseEntity<Message>(message, HttpStatus.OK);
             }
 
         } catch (Exception e) {
-            logger.info("join Exception: " + e);
+            logger.error("join Exception: " + e);
             return new ResponseEntity<Message>(message, HttpStatus.BAD_REQUEST);
         }
     }
-    
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<Message> login(HttpServletRequest request, @RequestBody User user) {
+
+        Message message = new Message();
+
+        try {
+            Optional<User> member = Optional.ofNullable(userService.loginCheck(user));
+            if (member.isPresent()) {
+                HttpSession session = request.getSession();
+                session.setAttribute("user", member.get());
+                // Message 로그인 성공
+                message.setStatus(LOGIN_SUCCESS);
+
+                System.out.println(member.get().toString());
+                return new ResponseEntity<Message>(message, HttpStatus.OK);
+            } else {
+                message.setStatus(LOGIN_FAIL);
+                return new ResponseEntity<Message>(message, HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            logger.error("Login error :" + e);
+            message.setStatus(LOGIN_ERROR);
+            return  new ResponseEntity<Message>(message, HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
 }

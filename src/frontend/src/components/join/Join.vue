@@ -8,7 +8,7 @@
                             v-model="id"
                             :error-messages="errors"
                             label="Id"
-                            :F="idDupCheck"
+                            :disabled="idDupCheck"
                     ></v-text-field>
                     <v-btn dark @click="idCheck" class="mr-2">중복 체크</v-btn>
 
@@ -115,7 +115,7 @@
             console.log(this);
             console.log(target);
 
-            return this== true;
+            return target== true;
         },
         message: '아이디 중복체크가 되지 않았습니다.',
     })
@@ -157,7 +157,7 @@
         },
         data() {
             return {
-                userId : '',
+                id : '',
                 email : '',
                 password : '',
                 name : '',
@@ -186,12 +186,12 @@
                                 birthday : this.birthday
                             }).then(function(res) {
 
-                                if(res.data.status == "success") {
+                                if(res.data.status == "SUCCESS") {
                                 console.log(res)
                                 window.alert("회원가입이 완료되었습니다.")
                                 that.$router.push({path: '/login'})
                                 }
-                                else if(res.data.status != "success"){
+                                else if(res.data.status != "SUCCESS"){
                                     window.alert(res.data.message);
                                 }
 
@@ -220,6 +220,7 @@
                     return;
                 } else if(this.id.length <5 || this.id.length > 10) {
                     alert('id의 길이는 5~10자리 입니다.');
+                    return;
                 }
 
                 const that = this
@@ -248,7 +249,7 @@
                         )
                     } else if(res.data.status =="ALREADY_REGISTERED") {
                         console.log('ALREADY_REGISTERED');
-
+                        window.alert('이미 가입된 ID입니다.');
                     } else if(res.data.status != "SUCCESS"){
                         window.alert(res.data.message);
                     }

@@ -10,4 +10,5 @@ public interface UserMapper {
 
     int idOverlapCheck(String email);
 
+    User loginCheck(User user);
 }

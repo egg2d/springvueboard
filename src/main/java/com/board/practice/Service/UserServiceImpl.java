@@ -20,4 +20,9 @@ public class UserServiceImpl implements UserService{
     public int idOverlapCheck(String email) {
         return userMapper.idOverlapCheck(email);
     }
+
+    @Override
+    public User loginCheck(User user) {
+        return userMapper.loginCheck(user);
+    }
 }

@@ -24,4 +24,12 @@
         where id=#{id}
     </select>
 
+    <select id="loginCheck" parameterType="com.board.practice.Vo.User" resultType="com.board.practice.Vo.User">
+        select *
+        from user_tb
+        where id=#{id} and password=#{password}
+    </select>
+
+
+
 </mapper>

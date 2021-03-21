@@ -17,14 +17,18 @@
                     <v-spacer />
 
                     <v-toolbar-items>
-                        <v-btn
-                                depressed
-                                v-if="isAuthenticated == null" to="/login" class="hidden-sm-and-down">로그인</v-btn>
-                        <v-btn
-                                depressed
-                                v-if="isAuthenticated == null" to="/join" class="hidden-sm-and-down">회원가입</v-btn>
-
-                        <v-btn text>로그아웃</v-btn>
+                        <!--<div v-if="this.$session.get('id') == null">-->
+                        <div v-if="this.$store.getters.loginStatus == false">
+                            <v-btn
+                                    depressed
+                                    to="/login" class="hidden-sm-and-down">로그인</v-btn>
+                            <v-btn
+                                    depressed
+                                    to="/join" class="hidden-sm-and-down">회원가입</v-btn>
+                        </div>
+                        <div v-if="this.$store.getters.loginStatus == true">
+                            <v-btn v-on:click="logout">로그아웃</v-btn>
+                        </div>
                     </v-toolbar-items>
                 </v-row>
             </v-container>
@@ -44,16 +48,19 @@
         },
         methods: {
             logout() {
+                debugger;
+                this.$session.destroy();
 
+                this.$store.commit('LOGOUT');
                 //로그아웃 mutations 실행 후 리다이렉트
-                store.dispatch("LOGOUT")
+                /*store.dispatch("LOGOUT")
                     .then(() => this.$router.push("/")
                         .catch(err => {
                             if(err.name != "NavigationDuplicated") {
                                 throw err;
                             }
                         })
-                    )
+                    )*/
             }
         }
     }

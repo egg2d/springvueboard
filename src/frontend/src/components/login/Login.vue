@@ -2,12 +2,12 @@
     <div style="width: 20%; min-height: 500px" class="mx-auto mt-6">
         <h1>로그인</h1>
         <ValidationObserver ref="observer">
-            <form @submit.prevent="onSubmit(email, password)">
-                <ValidationProvider v-slot="{errors}" name="E-mail" rules="required">
+            <form @submit.prevent="onSubmit(id, password)">
+                <ValidationProvider v-slot="{errors}" name="id" rules="required">
                     <v-text-field
-                            v-model="email"
+                            v-model="id"
                             :error-messages="errors"
-                            label="E-mail"
+                            label="ID"
                     ></v-text-field>
                 </ValidationProvider>
                 <ValidationProvider v-slot="{errors}" name="Password" rules="required">
@@ -24,7 +24,7 @@
             </form>
 
         </ValidationObserver>
-        <v-btn class="mt-5" dark @click="naver">네이버 로그인</v-btn>
+       <!-- <v-btn class="mt-5" dark @click="naver">네이버 로그인</v-btn> -->
         <!--    <v-form @submit.prevent="onSubmit(email, password)">-->
         <!--      <v-text-field-->
         <!--        v-model="email"-->
@@ -48,6 +48,7 @@
     import { required} from 'vee-validate/dist/rules'
     import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate'
     setInteractionMode('eager')
+    import axios from 'axios'
 
     extend('required', {
         ...required,
@@ -62,22 +63,44 @@
         },
         data() {
             return {
-                email : '',
+                id : '',
                 password : '',
                 msg : '',
             }
         },
         methods : {
-            onSubmit(email, password) {
+            onSubmit(id, password) {
                 this.$refs.observer.validate()
                     //LOGIN action 실행
                     .then((res) => {
                         if (res) {
-                            this.$store
-                                .dispatch("LOGIN", {email, password})
-                                .then((res) =>
-                                    res == undefined ? this.redirect() : this.msg = res)
-                                .catch(({message}) => (this.msg = message))
+                           const that = this;
+                           axios.post('/api/user/login',{
+                               id:id,
+                               password: password
+                           })
+                           .then(function(res){
+
+                               if(res.data.status =="LOGIN_SUCCESS") {
+                                   console.log(res);
+                                   window.alert("로그인에 성공하였습니다.");
+                                   that.$session.start();
+                                   that.$session.set('id', that.id);
+                                   console.log(that.$session.get('id'));
+
+                                   that.$store.commit('LOGIN');
+                                   that.redirect('/');
+                               } else {
+                                   console.log(res);
+                                   window.alert("로그인에 실패하였습니다.");
+                                   that.redirect('/');
+                               }
+
+                           })
+                           .catch(function(err){
+                              window.alert(err);
+                           });
+
                         }
                     })
                     .catch((err) => {
@@ -86,7 +109,6 @@
             },
 
             redirect() {
-
                 this.$router.push("/")
             },
             goBack() {
